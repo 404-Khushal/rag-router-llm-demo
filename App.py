@@ -8,10 +8,10 @@ nest_asyncio.apply()
 # Loading API key
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
-st.title("🧠 Research Paper Q&A")
+st.title("Ask & Summarize Research Papers with RAG")
 
-file_choice = st.selectbox("Choose a paper:", ["attention.pdf", "gpt3.pdf"])
-query = st.text_input("Ask a question about the paper:")
+file_choice = st.selectbox("Choose a paper:", ["papers/attention.pdf", "papers/gpt3.pdf"])
+query = st.text_input("Ask a question about the paper:", placeholder="e.g. What is the model architecture?")
 
 if query and file_choice:
     with st.spinner("Processing..."):
