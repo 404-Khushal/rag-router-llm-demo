@@ -29,7 +29,7 @@ if query and file_choice:
         from llama_index.llms.groq import Groq
         from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-        Settings.llm = Groq(model="llama-3.1-8b-instant")
+        Settings.llm = Groq(model="llama-guard-3-8b")
         Settings.embed_model = HuggingFaceEmbedding()
 
         #Creating Indexes
@@ -40,7 +40,7 @@ if query and file_choice:
 
         #Search Engines
         summary_query_engine = summary_index.as_query_engine(
-            response_mode="tree_summarize", use_async=True
+            response_mode="simple_summarize", use_async=True
         )
         vector_query_engine = vector_index.as_query_engine()
 
