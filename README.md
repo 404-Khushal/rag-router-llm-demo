@@ -18,7 +18,7 @@ A simple and effective **Retrieval-Augmented Generation (RAG)** app that lets yo
 
 ## 🚀 Live Demo
 
-👉 Coming soon @ [Add your Streamlit Cloud or deployment link here]
+https://rag-router-llm-demo-bnmweuahuwskepbfjxkyhg.streamlit.app/
 
 ---
 
@@ -67,7 +67,6 @@ RAG-Paper-Reader/
 
 ## ✅ Features
 
-* 🧾 Supports multiple PDFs
 * 💡 Clean, user-friendly interface
 * 🧠 Smart summary and vector-based question answering
 * 🔄 Easy to customize for different documents or models
