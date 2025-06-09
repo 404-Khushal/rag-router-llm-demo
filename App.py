@@ -30,7 +30,8 @@ if query and file_choice:
         from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
         Settings.llm = Groq(model="llama-3.1-8b-instant")
-        Settings.embed_model = HuggingFaceEmbedding()
+        Settings.embed_model = HuggingFaceEmbedding(model_name="all-MiniLM-L6-v2")
+
 
         #Creating Indexes
         from llama_index.core import SummaryIndex, VectorStoreIndex
