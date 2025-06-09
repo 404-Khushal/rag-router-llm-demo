@@ -10,7 +10,10 @@ os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 st.title("Ask & Summarize Research Papers with RAG")
 
-file_choice = st.selectbox("Choose a paper:", ["Attention.pdf", "gpt3.pdf"])
+file_choice = st.selectbox("Choose a paper:", [
+    "Artificial Intelligence and a Weapon of Mass Destruction.pdf",
+    "Attention Is All You Need.pdf",
+    "Language Models are few-shot leaners.pdf"])
 query = st.text_input("Ask a question about the paper:", placeholder="e.g. What is the model architecture?")
 
 if query and file_choice:
