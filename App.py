@@ -29,7 +29,7 @@ if query and file_choice:
         from llama_index.llms.groq import Groq
         from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-        Settings.llm = Groq(model="llama-guard-3-8b")
+        Settings.llm = Groq(model="llama-3.1-8b-instant")
         Settings.embed_model = HuggingFaceEmbedding()
 
         #Creating Indexes
