@@ -31,7 +31,7 @@ if query and file_choice:
         from llama_index.core import SimpleDirectoryReader
         from llama_index.core.node_parser import SentenceSplitter
 
-        docs = SimpleDirectoryReader(input_files=uploaded_file.load_data()
+        docs = SimpleDirectoryReader(input_files=uploaded_file.load_data())
         splitter = SentenceSplitter(chunk_size=3000, chunk_overlap=20)
         nodes = splitter.get_nodes_from_documents(docs)
 
