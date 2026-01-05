@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-import fitz
+
 
 # For async stuff
 import nest_asyncio
