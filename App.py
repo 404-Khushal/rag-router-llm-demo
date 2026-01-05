@@ -22,7 +22,7 @@ query = st.text_input("Ask a question about the paper:", placeholder="e.g. What 
 #user file input
 st.title("PDF Uploader and Reader")
 
-uploaded_file = st.file_uploader("Choose a PDF file", type=["pdf"])
+uploaded_file = st.file_uploader(file_choice, type=["pdf"])
 
 if query and file_choice:
     with st.spinner("Processing..."):
