@@ -1,84 +1,80 @@
 import os
 import streamlit as st
-
-
-# For async stuff
 import nest_asyncio
+from llama_index.core import (
+    SimpleDirectoryReader, 
+    VectorStoreIndex, 
+    SummaryIndex, 
+    Settings, 
+    StorageContext
+)
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.llms.groq import Groq
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.core.tools import QueryEngineTool
+from llama_index.core.query_engine.router_query_engine import RouterQueryEngine
+from llama_index.core.selectors import LLMSingleSelector
+
 nest_asyncio.apply()
 
-# Loading API key
-os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+# 1. Setup Models (Cached)
+@st.cache_resource
+def init_models():
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+    Settings.llm = Groq(model="llama-3.1-8b-instant")
+    Settings.embed_model = HuggingFaceEmbedding(model_name="all-MiniLM-L6-v2")
 
-st.title("Ask & Summarize Research Papers with RAG")
+init_models()
 
-file_choice = st.selectbox("Choose a paper:", [
-    "Artificial Intelligence and a Weapon of Mass Destruction.pdf",
-    "Attention Is All You Need.pdf",
-    "Language Models are few-shot leaners.pdf",
-    "From Riches to Rags- The Story of Vijay Mallya.pdf"
-])
-query = st.text_input("Ask a question about the paper:", placeholder="e.g. What is the model architecture?")
+st.title("📚 RAG Research Assistant")
 
-#user file input
-st.title("PDF Uploader and Reader")
+# Sidebar for file upload
+with st.sidebar:
+    uploaded_file = st.file_uploader("Upload a Research Paper", type=["pdf"])
 
-uploaded_file = st.file_uploader(file_choice, type=["pdf"])
+if uploaded_file:
+    # Save file temporarily to disk so SimpleDirectoryReader can see it
+    temp_path = f"./temp_{uploaded_file.name}"
+    with open(temp_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
 
-if query and file_choice:
-    with st.spinner("Processing..."):
-
-        #loading and splitting document into nodes
-        from llama_index.core import SimpleDirectoryReader
-        from llama_index.core.node_parser import SentenceSplitter
-
-        docs = SimpleDirectoryReader(input_files=uploaded_file.load_data())
-        splitter = SentenceSplitter(chunk_size=3000, chunk_overlap=20)
+    # 2. Process Document (Cached)
+    @st.cache_resource
+    def create_query_engine(_file_path):
+        reader = SimpleDirectoryReader(input_files=[_file_path])
+        docs = reader.load_data()
+        
+        splitter = SentenceSplitter(chunk_size=1024, chunk_overlap=100)
         nodes = splitter.get_nodes_from_documents(docs)
-
-        #Setting Up model
-        from llama_index.core import Settings
-        from llama_index.llms.groq import Groq
-        from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-
-        Settings.llm = Groq(model="llama-3.1-8b-instant")
-        Settings.embed_model = HuggingFaceEmbedding(model_name="all-MiniLM-L6-v2")
-
-
-        #Creating Indexes
-        from llama_index.core import SummaryIndex, VectorStoreIndex
-
-        summary_index = SummaryIndex(nodes)
+        
         vector_index = VectorStoreIndex(nodes)
-
-        #Search Engines
-        summary_query_engine = summary_index.as_query_engine(
-            response_mode="simple_summarize", use_async=True
-        )
-        vector_query_engine = vector_index.as_query_engine()
-
-        #Tool wrappers of both engines to help decide routerllm
-        from llama_index.core.tools import QueryEngineTool
-
+        summary_index = SummaryIndex(nodes)
+        
+        # Define Tools
         summary_tool = QueryEngineTool.from_defaults(
-            query_engine=summary_query_engine,
-            description="Useful for summarization of the given context"
+            query_engine=summary_index.as_query_engine(response_mode="tree_summarize"),
+            description="Useful for summarization and broad overview questions."
         )
         vector_tool = QueryEngineTool.from_defaults(
-            query_engine=vector_query_engine,
-            description="Useful for retrieving specific context based on the question"
+            query_engine=vector_index.as_query_engine(),
+            description="Useful for retrieving specific facts, numbers, or technical details."
         )
-
-        #Employing router query engine to use a specific tool
-        from llama_index.core.query_engine.router_query_engine import RouterQueryEngine
-        from llama_index.core.selectors import LLMSingleSelector
-
-        Ask = RouterQueryEngine(
+        
+        return RouterQueryEngine(
             selector=LLMSingleSelector.from_defaults(),
             query_engine_tools=[summary_tool, vector_tool],
             verbose=True
         )
 
-        #Output display
-        response = Ask.query(query)
-        st.subheader("Answer :")
-        st.write(response.response)
+    query_engine = create_query_engine(temp_path)
+
+    # 3. Chat Interface
+    query = st.text_input("Ask a question about the paper:")
+    
+    if query:
+        with st.spinner("Analyzing..."):
+            response = query_engine.query(query)
+            st.markdown("### Answer")
+            st.write(response.response)
+else:
+    st.info("Please upload a PDF to get started.")
